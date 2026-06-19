@@ -70,30 +70,36 @@ function render(){
     var subDiv=document.createElement('div');
     subDiv.className='sub-dir';
     
-    dir.c.forEach(function(sub){
-      if(sub.c){
-        var subFiles=[];
-        function collect2(n){if(n.c) n.c.forEach(collect2); else subFiles.push(n);}
-        if(sub.c) sub.c.forEach(collect2);
+   dir.c.forEach(function(sub){
+     if(sub.c){
+       var subFiles=[];
+       function collect2(n){if(n.c) n.c.forEach(collect2); else subFiles.push(n);}
+       if(sub.c) sub.c.forEach(collect2);
         
-        var st=document.createElement('div');
-        st.className='sub-dir-title';
-        st.innerHTML='📁 '+esc(sub.n)+' <span class="cnt">'+subFiles.length+'</span>';
-        st.addEventListener('click',function(){st.nextElementSibling.classList.toggle('open');st.querySelector('.arrow').classList.toggle('open')});
-        subDiv.appendChild(st);
-        
-        var fdiv=document.createElement('div');
-        fdiv.className='files';
-        sub.c.forEach(function(f){
-          var a=document.createElement('a');
-          a.href=f.p;
-          a.target='_blank';
-          a.innerHTML=shortName(f.n);
-          fdiv.appendChild(a);
-        });
-        subDiv.appendChild(fdiv);
-      }
-    });
+       var st=document.createElement('div');
+       st.className='sub-dir-title';
+       st.innerHTML='📁 '+esc(sub.n)+' <span class="cnt">'+subFiles.length+'</span>';
+       st.addEventListener('click',function(){st.nextElementSibling.classList.toggle('open');st.querySelector('.arrow').classList.toggle('open')});
+       subDiv.appendChild(st);
+       
+       var fdiv=document.createElement('div');
+       fdiv.className='files';
+       sub.c.forEach(function(f){
+         var a=document.createElement('a');
+         a.href=f.p;
+         a.target='_blank';
+         a.innerHTML=shortName(f.n);
+         fdiv.appendChild(a);
+       });
+       subDiv.appendChild(fdiv);
+      }else{
+        var a=document.createElement('a');
+        a.href=sub.p;
+        a.target='_blank';
+        a.innerHTML=shortName(sub.n);
+        subDiv.appendChild(a);
+     }
+   });
     
     section.appendChild(subDiv);
     root.appendChild(section);
