@@ -2,561 +2,115 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>时政汇总阅读器</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>时政汇总</title>
 <style>
-  :root {
-    --bg: #f5f0eb;
-    --surface: #ffffff;
-    --sidebar-bg: #ede7e0;
-    --border: #ddd6ce;
-    --text: #2c2c2c;
-    --text-secondary: #7a6f64;
-    --accent: #8b5a2b;
-    --accent-light: #e8d5c0;
-    --hover: #e0d6cc;
-    --active-bg: #d6c8b8;
-    --shadow: rgba(0,0,0,0.06);
-    --radius: 10px;
-    --header-h: 52px;
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { height:100%; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  /* ── Header ── */
-  .header {
-    height: var(--header-h);
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    gap: 16px;
-    flex-shrink: 0;
-    z-index: 10;
-  }
-  .header h1 {
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    white-space: nowrap;
-  }
-  .header h1 span { color: var(--accent); }
-  .search-wrap {
-    flex: 1;
-    max-width: 360px;
-    position: relative;
-  }
-  .search-wrap svg {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-secondary);
-    pointer-events: none;
-  }
-  .search-wrap input {
-    width: 100%;
-    padding: 6px 12px 6px 32px;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    font-size: 13px;
-    background: var(--bg);
-    color: var(--text);
-    outline: none;
-    transition: border-color .2s;
-  }
-  .search-wrap input:focus { border-color: var(--accent); }
-  .search-wrap input::placeholder { color: var(--text-secondary); }
-  .stats {
-    font-size: 12px;
-    color: var(--text-secondary);
-    white-space: nowrap;
-  }
-
-  /* ── Main Layout ── */
-  .main {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
-
-  /* ── Sidebar ── */
-  .sidebar {
-    width: 280px;
-    min-width: 0;
-    background: var(--sidebar-bg);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    transition: width .25s ease, min-width .25s ease;
-  }
-  .sidebar.collapsed {
-    width: 0;
-    min-width: 0;
-    border: none;
-  }
-  .sidebar-tree {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px 0 20px;
-  }
-  .sidebar-tree::-webkit-scrollbar { width: 4px; }
-  .sidebar-tree::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  /* tree nodes */
-  .tree-item {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    padding: 3px 14px;
-    font-size: 13px;
-    line-height: 1.6;
-    user-select: none;
-    transition: background .1s;
-    gap: 4px;
-  }
-  .tree-item:hover { background: var(--hover); }
-  .tree-item.active { background: var(--active-bg); color: var(--accent); font-weight: 500; }
-  .tree-item .icon {
-    flex-shrink: 0;
-    width: 18px;
-    text-align: center;
-    font-size: 14px;
-    color: var(--text-secondary);
-  }
-  .tree-item.dir .icon { color: var(--accent); }
-  .tree-item .label { flex:1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .tree-item .count {
-    font-size: 11px;
-    color: var(--text-secondary);
-    background: var(--surface);
-    padding: 0 6px;
-    border-radius: 8px;
-    line-height: 1.6;
-  }
-  .tree-item .arrow {
-    flex-shrink: 0;
-    width: 14px;
-    text-align: center;
-    font-size: 10px;
-    color: var(--text-secondary);
-    transition: transform .15s;
-  }
-  .tree-item .arrow.open { transform: rotate(90deg); }
-  .tree-children { display: none; }
-  .tree-children.open { display: block; }
-  .tree-children .tree-item { padding-left: 34px; }
-  .tree-children .tree-children .tree-item { padding-left: 54px; }
-  .no-results {
-    padding: 30px 20px;
-    text-align: center;
-    color: var(--text-secondary);
-    font-size: 13px;
-  }
-
-  /* ── Viewer ── */
-  .viewer {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: var(--surface);
-  }
-  .viewer-empty {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
-    gap: 12px;
-    padding: 40px;
-  }
-  .viewer-empty svg { opacity: .25; }
-  .viewer-empty h2 {
-    font-size: 18px;
-    font-weight: 400;
-    color: var(--text-secondary);
-  }
-  .viewer-empty p { font-size: 13px; }
-  .viewer-bar {
-    height: 40px;
-    display: flex;
-    align-items: center;
-    padding: 0 16px;
-    gap: 10px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    flex-shrink: 0;
-    overflow: hidden;
-  }
-  .viewer-bar .file-icon { font-size: 16px; flex-shrink:0; }
-  .viewer-bar .file-path {
-    flex:1;
-    font-size: 13px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--text-secondary);
-  }
-  .viewer-bar .file-path strong { color: var(--text); font-weight: 500; }
-  .viewer-bar .nav-btn {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 2px 10px;
-    cursor: pointer;
-    font-size: 13px;
-    color: var(--text);
-    white-space: nowrap;
-    transition: background .15s;
-  }
-  .viewer-bar .nav-btn:hover { background: var(--hover); }
-  .viewer-bar .nav-btn:disabled { opacity: .3; cursor: default; }
-  .viewer-frame {
-    flex: 1;
-    border: none;
-    background: #fafafa;
-  }
-
-  /* ── Toggle ── */
-  .toggle-btn {
-    position: absolute;
-    left: 280px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 5;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: none;
-    border-radius: 0 6px 6px 0;
-    width: 20px;
-    height: 48px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
-    font-size: 12px;
-    transition: left .25s ease;
-    padding: 0;
-  }
-  .sidebar.collapsed ~ .viewer .toggle-btn,
-  .sidebar.collapsed + .viewer .toggle-btn {
-    left: 0;
-  }
-  .sidebar-wrap { position: relative; display: flex; }
-
-  /* ── Responsive ── */
-  @media (max-width: 720px) {
-    .sidebar { width: 220px; }
-    .toggle-btn { left: 220px; }
-    .sidebar.collapsed ~ .viewer .toggle-btn,
-    .sidebar.collapsed + .viewer .toggle-btn { left: 0; }
-    .header h1 { font-size: 14px; }
-   .search-wrap { max-width: 200px; }
- }
-  @media (max-width: 500px) {
-    .sidebar { position: fixed; left: 0; top: var(--header-h); bottom: 0; z-index: 20; width: 260px; box-shadow: 2px 0 12px rgba(0,0,0,0.12); }
-    .sidebar.collapsed { display: none; }
-    .toggle-btn { display: none; }
-    .header h1 { font-size: 13px; }
-    .search-wrap { max-width: 120px; }
-    .viewer-bar { height: 36px; padding: 0 10px; gap: 6px; }
-    .viewer-bar .nav-btn { padding: 1px 6px; font-size: 12px; }
-  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f0eb;color:#2c2c2c;padding:16px;max-width:720px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 4px 0;color:#8b5a2b}
+  .stats{font-size:12px;color:#7a6f64;margin-bottom:16px}
+  .dir-section{margin-bottom:16px}
+  .dir-title{font-size:14px;font-weight:600;color:#5c4a3a;padding:8px 12px;background:#ede7e0;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
+  .dir-title .arrow{font-size:10px;transition:transform .2s}
+  .dir-title .arrow.open{transform:rotate(90deg)}
+  .dir-title .cnt{font-size:11px;color:#7a6f64;background:#fff;padding:0 8px;border-radius:10px;line-height:1.8}
+  .sub-dir{margin:6px 0 0 12px;display:none}
+  .sub-dir.open{display:block}
+  .sub-dir-title{font-size:13px;font-weight:500;color:#6b5d4f;padding:6px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
+  .sub-dir-title .arrow{font-size:10px;transition:transform .2s}
+  .sub-dir-title .arrow.open{transform:rotate(90deg)}
+  .sub-dir-title .cnt{font-size:11px;color:#7a6f64}
+  .files{margin:4px 0 0 12px;display:none}
+  .files.open{display:block}
+  a{display:block;padding:6px 12px;font-size:13px;color:#3a3a3a;text-decoration:none;border-radius:6px;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  a:active,a:hover{background:#e0d6cc}
+  a .date{color:#8b5a2b}
+  .search-wrap{margin-bottom:12px}
+  .search-wrap input{width:100%;padding:8px 12px;border:1px solid #ddd6ce;border-radius:20px;font-size:13px;background:#fff;color:#2c2c2c;outline:none}
+  .search-wrap input:focus{border-color:#8b5a2b}
 </style>
 </head>
 <body>
-
-<div class="header">
-  <h1>📖 <span>时政汇总</span></h1>
-  <div class="search-wrap">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="10" cy="10" r="7"/><path d="M15 15l6 6"/></svg>
-    <input type="text" id="search" placeholder="搜索文件名…" autocomplete="off">
-  </div>
-  <div class="stats" id="stats">0 个文件</div>
-</div>
-
-<div class="main">
-  <div class="sidebar-wrap">
-    <div class="sidebar" id="sidebar">
-      <div class="sidebar-tree" id="tree"></div>
-    </div>
-    <button class="toggle-btn" id="toggleBtn" title="切换侧栏">◀</button>
-  </div>
-
-  <div class="viewer" id="viewer">
-    <div class="viewer-empty" id="emptyState">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="9" y1="15" x2="15" y2="15"/>
-      </svg>
-      <h2>选择一个 PDF 开始阅读</h2>
-      <p>从左侧列表点击任意文件即可预览</p>
-    </div>
-    <div class="viewer-bar" id="viewerBar" style="display:none">
-      <span class="file-icon">📄</span>
-      <span class="file-path" id="filePath"></span>
-      <button class="nav-btn" id="prevBtn" title="上一个 (←)">◀ 上一个</button>
-      <button class="nav-btn" id="nextBtn" title="下一个 (→)">下一个 ▶</button>
-    </div>
-    <iframe class="viewer-frame" id="pdfFrame" style="display:none"></iframe>
-  </div>
-</div>
-
+<h1>📖 时政汇总</h1>
+<div class="stats">共 173 个PDF — 点击即可阅读</div>
+<div class="search-wrap"><input type="text" id="search" placeholder="搜索文件名…" autocomplete="off"></div>
+<div id="root"></div>
 <script>
-// ── State ──
-let treeData = null;
-let flatList = [];           // all PDFs in order (for prev/next)
-let currentIdx = -1;
-let sidebarCollapsed = false;
+var TREE = {"name":"时政汇总","children":[{"n":"两会专题","c":[{"n":"2026年两会思维导图.pdf","p":"两会专题/2026年两会思维导图.pdf"},{"n":"2026年两会政府工作报告.pdf","p":"两会专题/2026年两会政府工作报告.pdf"},{"n":"2026年两会政府工作报告100题（速记版）.pdf","p":"两会专题/2026年两会政府工作报告100题（速记版）.pdf"}]},{"n":"公基常识背诵手册","c":[{"n":"党史党务背诵手册.pdf","p":"公基常识背诵手册/党史党务背诵手册.pdf"},{"n":"公文背诵手册.pdf","p":"公基常识背诵手册/公文背诵手册.pdf"},{"n":"地理背诵手册.pdf","p":"公基常识背诵手册/地理背诵手册.pdf"},{"n":"文史背诵手册.pdf","p":"公基常识背诵手册/文史背诵手册.pdf"},{"n":"新思想背诵手册.pdf","p":"公基常识背诵手册/新思想背诵手册.pdf"},{"n":"每日公基常识填空题（背诵版）.pdf","p":"公基常识背诵手册/每日公基常识填空题（背诵版）.pdf"},{"n":"毛中特背诵手册.pdf","p":"公基常识背诵手册/毛中特背诵手册.pdf"},{"n":"法律背诵手册.pdf","p":"公基常识背诵手册/法律背诵手册.pdf"},{"n":"科技背诵手册.pdf","p":"公基常识背诵手册/科技背诵手册.pdf"},{"n":"管理背诵手册.pdf","p":"公基常识背诵手册/管理背诵手册.pdf"},{"n":"经济背诵手册.pdf","p":"公基常识背诵手册/经济背诵手册.pdf"},{"n":"马原背诵手册.pdf","p":"公基常识背诵手册/马原背诵手册.pdf"}]},{"n":"吉林省专项","c":[{"n":"吉林省省情专项.pdf","p":"吉林省专项/吉林省省情专项.pdf"},{"n":"吉林省近半年重要时政.pdf","p":"吉林省专项/吉林省近半年重要时政.pdf"}]},{"n":"每日积累","c":[{"n":"2025年12月","c":[{"n":"2025年12月10日时政积累.pdf","p":"每日积累/2025年12月/2025年12月10日时政积累.pdf"},{"n":"2025年12月11日时政积累.pdf","p":"每日积累/2025年12月/2025年12月11日时政积累.pdf"},{"n":"2025年12月12日时政积累.pdf","p":"每日积累/2025年12月/2025年12月12日时政积累.pdf"},{"n":"2025年12月13日时政积累.pdf","p":"每日积累/2025年12月/2025年12月13日时政积累.pdf"},{"n":"2025年12月14日时政积累.pdf","p":"每日积累/2025年12月/2025年12月14日时政积累.pdf"},{"n":"2025年12月15日时政积累.pdf","p":"每日积累/2025年12月/2025年12月15日时政积累.pdf"},{"n":"2025年12月16日时政积累.pdf","p":"每日积累/2025年12月/2025年12月16日时政积累.pdf"},{"n":"2025年12月17日时政积累.pdf","p":"每日积累/2025年12月/2025年12月17日时政积累.pdf"},{"n":"2025年12月18日时政积累.pdf","p":"每日积累/2025年12月/2025年12月18日时政积累.pdf"},{"n":"2025年12月19日时政积累.pdf","p":"每日积累/2025年12月/2025年12月19日时政积累.pdf"},{"n":"2025年12月1日时政积累.pdf","p":"每日积累/2025年12月/2025年12月1日时政积累.pdf"},{"n":"2025年12月20日时政积累.pdf","p":"每日积累/2025年12月/2025年12月20日时政积累.pdf"},{"n":"2025年12月21日时政积累.pdf","p":"每日积累/2025年12月/2025年12月21日时政积累.pdf"},{"n":"2025年12月22日时政积累.pdf","p":"每日积累/2025年12月/2025年12月22日时政积累.pdf"},{"n":"2025年12月23日时政积累.pdf","p":"每日积累/2025年12月/2025年12月23日时政积累.pdf"},{"n":"2025年12月24日时政积累.pdf","p":"每日积累/2025年12月/2025年12月24日时政积累.pdf"},{"n":"2025年12月25日时政积累.pdf","p":"每日积累/2025年12月/2025年12月25日时政积累.pdf"},{"n":"2025年12月26日时政积累.pdf","p":"每日积累/2025年12月/2025年12月26日时政积累.pdf"},{"n":"2025年12月27日时政积累.pdf","p":"每日积累/2025年12月/2025年12月27日时政积累.pdf"},{"n":"2025年12月28日时政积累.pdf","p":"每日积累/2025年12月/2025年12月28日时政积累.pdf"},{"n":"2025年12月29日时政积累.pdf","p":"每日积累/2025年12月/2025年12月29日时政积累.pdf"},{"n":"2025年12月2日时政积累.pdf","p":"每日积累/2025年12月/2025年12月2日时政积累.pdf"},{"n":"2025年12月30日时政积累.pdf","p":"每日积累/2025年12月/2025年12月30日时政积累.pdf"},{"n":"2025年12月31日时政积累.pdf","p":"每日积累/2025年12月/2025年12月31日时政积累.pdf"},{"n":"2025年12月3日时政积累.pdf","p":"每日积累/2025年12月/2025年12月3日时政积累.pdf"},{"n":"2025年12月4日时政积累.pdf","p":"每日积累/2025年12月/2025年12月4日时政积累.pdf"},{"n":"2025年12月5日时政积累.pdf","p":"每日积累/2025年12月/2025年12月5日时政积累.pdf"},{"n":"2025年12月6日时政积累.pdf","p":"每日积累/2025年12月/2025年12月6日时政积累.pdf"},{"n":"2025年12月7日时政积累.pdf","p":"每日积累/2025年12月/2025年12月7日时政积累.pdf"},{"n":"2025年12月8日时政积累.pdf","p":"每日积累/2025年12月/2025年12月8日时政积累.pdf"},{"n":"2025年12月9日时政积累.pdf","p":"每日积累/2025年12月/2025年12月9日时政积累.pdf"}]},{"n":"2026年01月","c":[{"n":"2026年1月10日时政积累.pdf","p":"每日积累/2026年01月/2026年1月10日时政积累.pdf"},{"n":"2026年1月11日时政积累.pdf","p":"每日积累/2026年01月/2026年1月11日时政积累.pdf"},{"n":"2026年1月12日时政积累.pdf","p":"每日积累/2026年01月/2026年1月12日时政积累.pdf"},{"n":"2026年1月13日时政积累.pdf","p":"每日积累/2026年01月/2026年1月13日时政积累.pdf"},{"n":"2026年1月14日时政积累.pdf","p":"每日积累/2026年01月/2026年1月14日时政积累.pdf"},{"n":"2026年1月15日时政积累.pdf","p":"每日积累/2026年01月/2026年1月15日时政积累.pdf"},{"n":"2026年1月16日时政积累.pdf","p":"每日积累/2026年01月/2026年1月16日时政积累.pdf"},{"n":"2026年1月17日时政积累.pdf","p":"每日积累/2026年01月/2026年1月17日时政积累.pdf"},{"n":"2026年1月18日时政积累.pdf","p":"每日积累/2026年01月/2026年1月18日时政积累.pdf"},{"n":"2026年1月19日时政积累.pdf","p":"每日积累/2026年01月/2026年1月19日时政积累.pdf"},{"n":"2026年1月1日时政积累.pdf","p":"每日积累/2026年01月/2026年1月1日时政积累.pdf"},{"n":"2026年1月20日时政积累.pdf","p":"每日积累/2026年01月/2026年1月20日时政积累.pdf"},{"n":"2026年1月21日时政积累.pdf","p":"每日积累/2026年01月/2026年1月21日时政积累.pdf"},{"n":"2026年1月22日时政积累.pdf","p":"每日积累/2026年01月/2026年1月22日时政积累.pdf"},{"n":"2026年1月23日时政积累.pdf","p":"每日积累/2026年01月/2026年1月23日时政积累.pdf"},{"n":"2026年1月24日时政积累.pdf","p":"每日积累/2026年01月/2026年1月24日时政积累.pdf"},{"n":"2026年1月25日时政积累.pdf","p":"每日积累/2026年01月/2026年1月25日时政积累.pdf"},{"n":"2026年1月26日时政积累.pdf","p":"每日积累/2026年01月/2026年1月26日时政积累.pdf"},{"n":"2026年1月27日时政积累.pdf","p":"每日积累/2026年01月/2026年1月27日时政积累.pdf"},{"n":"2026年1月28日时政积累.pdf","p":"每日积累/2026年01月/2026年1月28日时政积累.pdf"},{"n":"2026年1月29日时政积累.pdf","p":"每日积累/2026年01月/2026年1月29日时政积累.pdf"},{"n":"2026年1月2日时政积累.pdf","p":"每日积累/2026年01月/2026年1月2日时政积累.pdf"},{"n":"2026年1月30日时政积累.pdf","p":"每日积累/2026年01月/2026年1月30日时政积累.pdf"},{"n":"2026年1月31日时政积累.pdf","p":"每日积累/2026年01月/2026年1月31日时政积累.pdf"},{"n":"2026年1月3日时政积累.pdf","p":"每日积累/2026年01月/2026年1月3日时政积累.pdf"},{"n":"2026年1月4日时政积累.pdf","p":"每日积累/2026年01月/2026年1月4日时政积累.pdf"},{"n":"2026年1月5日时政积累.pdf","p":"每日积累/2026年01月/2026年1月5日时政积累.pdf"},{"n":"2026年1月6日时政积累.pdf","p":"每日积累/2026年01月/2026年1月6日时政积累.pdf"},{"n":"2026年1月7日时政积累.pdf","p":"每日积累/2026年01月/2026年1月7日时政积累.pdf"},{"n":"2026年1月8日时政积累.pdf","p":"每日积累/2026年01月/2026年1月8日时政积累.pdf"},{"n":"2026年1月9日时政积累.pdf","p":"每日积累/2026年01月/2026年1月9日时政积累.pdf"}]},{"n":"2026年02月","c":[{"n":"2026年2月10日时政积累.pdf","p":"每日积累/2026年02月/2026年2月10日时政积累.pdf"},{"n":"2026年2月11日时政积累.pdf","p":"每日积累/2026年02月/2026年2月11日时政积累.pdf"},{"n":"2026年2月12日时政积累.pdf","p":"每日积累/2026年02月/2026年2月12日时政积累.pdf"},{"n":"2026年2月13日时政积累.pdf","p":"每日积累/2026年02月/2026年2月13日时政积累.pdf"},{"n":"2026年2月1日时政积累.pdf","p":"每日积累/2026年02月/2026年2月1日时政积累.pdf"},{"n":"2026年2月24日时政积累.pdf","p":"每日积累/2026年02月/2026年2月24日时政积累.pdf"},{"n":"2026年2月25日时政积累.pdf","p":"每日积累/2026年02月/2026年2月25日时政积累.pdf"},{"n":"2026年2月26日时政积累.pdf","p":"每日积累/2026年02月/2026年2月26日时政积累.pdf"},{"n":"2026年2月28日时政积累.pdf","p":"每日积累/2026年02月/2026年2月28日时政积累.pdf"},{"n":"2026年2月2日时政积累.pdf","p":"每日积累/2026年02月/2026年2月2日时政积累.pdf"},{"n":"2026年2月3日时政积累.pdf","p":"每日积累/2026年02月/2026年2月3日时政积累.pdf"},{"n":"2026年2月4日时政积累.pdf","p":"每日积累/2026年02月/2026年2月4日时政积累.pdf"},{"n":"2026年2月5日时政积累.pdf","p":"每日积累/2026年02月/2026年2月5日时政积累.pdf"},{"n":"2026年2月6日时政积累.pdf","p":"每日积累/2026年02月/2026年2月6日时政积累.pdf"},{"n":"2026年2月7日时政积累.pdf","p":"每日积累/2026年02月/2026年2月7日时政积累.pdf"},{"n":"2026年2月8日时政积累.pdf","p":"每日积累/2026年02月/2026年2月8日时政积累.pdf"},{"n":"2026年2月9日时政积累.pdf","p":"每日积累/2026年02月/2026年2月9日时政积累.pdf"}]},{"n":"2026年03月","c":[{"n":"2026年3月11日时政积累.pdf","p":"每日积累/2026年03月/2026年3月11日时政积累.pdf"},{"n":"2026年3月12日时政积累.pdf","p":"每日积累/2026年03月/2026年3月12日时政积累.pdf"},{"n":"2026年3月13日时政积累.pdf","p":"每日积累/2026年03月/2026年3月13日时政积累.pdf"},{"n":"2026年3月14日时政积累.pdf","p":"每日积累/2026年03月/2026年3月14日时政积累.pdf"},{"n":"2026年3月15日时政积累.pdf","p":"每日积累/2026年03月/2026年3月15日时政积累.pdf"},{"n":"2026年3月16日时政积累.pdf","p":"每日积累/2026年03月/2026年3月16日时政积累.pdf"},{"n":"2026年3月17日时政积累.pdf","p":"每日积累/2026年03月/2026年3月17日时政积累.pdf"},{"n":"2026年3月19日时政积累.pdf","p":"每日积累/2026年03月/2026年3月19日时政积累.pdf"},{"n":"2026年3月1日时政积累.pdf","p":"每日积累/2026年03月/2026年3月1日时政积累.pdf"},{"n":"2026年3月20日时政积累.pdf","p":"每日积累/2026年03月/2026年3月20日时政积累.pdf"},{"n":"2026年3月21日时政积累.pdf","p":"每日积累/2026年03月/2026年3月21日时政积累.pdf"},{"n":"2026年3月22日时政积累.pdf","p":"每日积累/2026年03月/2026年3月22日时政积累.pdf"},{"n":"2026年3月26日时政积累.pdf","p":"每日积累/2026年03月/2026年3月26日时政积累.pdf"},{"n":"2026年3月27日时政积累.pdf","p":"每日积累/2026年03月/2026年3月27日时政积累.pdf"},{"n":"2026年3月28日时政积累.pdf","p":"每日积累/2026年03月/2026年3月28日时政积累.pdf"},{"n":"2026年3月29日时政积累.pdf","p":"每日积累/2026年03月/2026年3月29日时政积累.pdf"},{"n":"2026年3月30日时政积累.pdf","p":"每日积累/2026年03月/2026年3月30日时政积累.pdf"},{"n":"2026年3月31日时政积累.pdf","p":"每日积累/2026年03月/2026年3月31日时政积累.pdf"},{"n":"2026年3月4日时政积累.pdf","p":"每日积累/2026年03月/2026年3月4日时政积累.pdf"},{"n":"2026年3月5日时政积累.pdf","p":"每日积累/2026年03月/2026年3月5日时政积累.pdf"},{"n":"2026年3月6日时政积累.pdf","p":"每日积累/2026年03月/2026年3月6日时政积累.pdf"},{"n":"2026年3月7日时政积累.pdf","p":"每日积累/2026年03月/2026年3月7日时政积累.pdf"},{"n":"2026年3月8日时政积累.pdf","p":"每日积累/2026年03月/2026年3月8日时政积累.pdf"}]},{"n":"2026年04月","c":[{"n":"2026年4月10日时政积累.pdf","p":"每日积累/2026年04月/2026年4月10日时政积累.pdf"},{"n":"2026年4月12日时政积累.pdf","p":"每日积累/2026年04月/2026年4月12日时政积累.pdf"},{"n":"2026年4月13日时政积累.pdf","p":"每日积累/2026年04月/2026年4月13日时政积累.pdf"},{"n":"2026年4月14日时政积累.pdf","p":"每日积累/2026年04月/2026年4月14日时政积累.pdf"},{"n":"2026年4月15日时政积累.pdf","p":"每日积累/2026年04月/2026年4月15日时政积累.pdf"},{"n":"2026年4月16日时政积累.pdf","p":"每日积累/2026年04月/2026年4月16日时政积累.pdf"},{"n":"2026年4月17日时政积累.pdf","p":"每日积累/2026年04月/2026年4月17日时政积累.pdf"},{"n":"2026年4月18日时政积累.pdf","p":"每日积累/2026年04月/2026年4月18日时政积累.pdf"},{"n":"2026年4月1日时政积累.pdf","p":"每日积累/2026年04月/2026年4月1日时政积累.pdf"},{"n":"2026年4月22日时政积累.pdf","p":"每日积累/2026年04月/2026年4月22日时政积累.pdf"},{"n":"2026年4月23日时政积累.pdf","p":"每日积累/2026年04月/2026年4月23日时政积累.pdf"},{"n":"2026年4月24日时政积累.pdf","p":"每日积累/2026年04月/2026年4月24日时政积累.pdf"},{"n":"2026年4月25日时政积累.pdf","p":"每日积累/2026年04月/2026年4月25日时政积累.pdf"},{"n":"2026年4月26日时政积累.pdf","p":"每日积累/2026年04月/2026年4月26日时政积累.pdf"},{"n":"2026年4月27日时政积累.pdf","p":"每日积累/2026年04月/2026年4月27日时政积累.pdf"},{"n":"2026年4月29日时政积累.pdf","p":"每日积累/2026年04月/2026年4月29日时政积累.pdf"},{"n":"2026年4月2日时政积累.pdf","p":"每日积累/2026年04月/2026年4月2日时政积累.pdf"},{"n":"2026年4月30日时政积累.pdf","p":"每日积累/2026年04月/2026年4月30日时政积累.pdf"},{"n":"2026年4月3日时政积累.pdf","p":"每日积累/2026年04月/2026年4月3日时政积累.pdf"},{"n":"2026年4月7日时政积累.pdf","p":"每日积累/2026年04月/2026年4月7日时政积累.pdf"},{"n":"2026年4月8日时政积累.pdf","p":"每日积累/2026年04月/2026年4月8日时政积累.pdf"},{"n":"2026年4月9日时政积累.pdf","p":"每日积累/2026年04月/2026年4月9日时政积累.pdf"}]},{"n":"2026年05月","c":[{"n":"2026年5月10日时政积累.pdf","p":"每日积累/2026年05月/2026年5月10日时政积累.pdf"},{"n":"2026年5月12日时政积累.pdf","p":"每日积累/2026年05月/2026年5月12日时政积累.pdf"},{"n":"2026年5月13日时政积累.pdf","p":"每日积累/2026年05月/2026年5月13日时政积累.pdf"},{"n":"2026年5月14日时政积累.pdf","p":"每日积累/2026年05月/2026年5月14日时政积累.pdf"},{"n":"2026年5月16日时政积累.pdf","p":"每日积累/2026年05月/2026年5月16日时政积累.pdf"},{"n":"2026年5月17日时政积累.pdf","p":"每日积累/2026年05月/2026年5月17日时政积累.pdf"},{"n":"2026年5月18日时政积累.pdf","p":"每日积累/2026年05月/2026年5月18日时政积累.pdf"},{"n":"2026年5月19日时政积累.pdf","p":"每日积累/2026年05月/2026年5月19日时政积累.pdf"},{"n":"2026年5月20日时政积累.pdf","p":"每日积累/2026年05月/2026年5月20日时政积累.pdf"},{"n":"2026年5月21日时政积累.pdf","p":"每日积累/2026年05月/2026年5月21日时政积累.pdf"},{"n":"2026年5月23日时政积累.pdf","p":"每日积累/2026年05月/2026年5月23日时政积累.pdf"},{"n":"2026年5月24日时政积累.pdf","p":"每日积累/2026年05月/2026年5月24日时政积累.pdf"},{"n":"2026年5月25日时政积累.pdf","p":"每日积累/2026年05月/2026年5月25日时政积累.pdf"},{"n":"2026年5月26日时政积累.pdf","p":"每日积累/2026年05月/2026年5月26日时政积累.pdf"},{"n":"2026年5月27日时政积累.pdf","p":"每日积累/2026年05月/2026年5月27日时政积累.pdf"},{"n":"2026年5月28日时政积累.pdf","p":"每日积累/2026年05月/2026年5月28日时政积累.pdf"},{"n":"2026年5月31日时政积累.pdf","p":"每日积累/2026年05月/2026年5月31日时政积累.pdf"},{"n":"2026年5月6日时政积累.pdf","p":"每日积累/2026年05月/2026年5月6日时政积累.pdf"},{"n":"2026年5月8日时政积累.pdf","p":"每日积累/2026年05月/2026年5月8日时政积累.pdf"}]},{"n":"2026年06月","c":[{"n":"2026年6月10日时政积累.pdf","p":"每日积累/2026年06月/2026年6月10日时政积累.pdf"},{"n":"2026年6月11日时政积累.pdf","p":"每日积累/2026年06月/2026年6月11日时政积累.pdf"},{"n":"2026年6月15日时政积累.pdf","p":"每日积累/2026年06月/2026年6月15日时政积累.pdf"},{"n":"2026年6月16日时政积累.pdf","p":"每日积累/2026年06月/2026年6月16日时政积累.pdf"},{"n":"2026年6月17日时政积累.pdf","p":"每日积累/2026年06月/2026年6月17日时政积累.pdf"},{"n":"2026年6月18日时政积累.pdf","p":"每日积累/2026年06月/2026年6月18日时政积累.pdf"},{"n":"2026年6月1日时政积累.pdf","p":"每日积累/2026年06月/2026年6月1日时政积累.pdf"},{"n":"2026年6月4日时政积累.pdf","p":"每日积累/2026年06月/2026年6月4日时政积累.pdf"},{"n":"2026年6月5日时政积累.pdf","p":"每日积累/2026年06月/2026年6月5日时政积累.pdf"},{"n":"2026年6月6日时政积累.pdf","p":"每日积累/2026年06月/2026年6月6日时政积累.pdf"},{"n":"2026年6月7日时政积累.pdf","p":"每日积累/2026年06月/2026年6月7日时政积累.pdf"},{"n":"2026年6月8日时政积累.pdf","p":"每日积累/2026年06月/2026年6月8日时政积累.pdf"},{"n":"2026年6月9日时政积累.pdf","p":"每日积累/2026年06月/2026年6月9日时政积累.pdf"}]}]}]};
+var total = 173;
 
-// ── DOM refs ──
-const treeEl = document.getElementById('tree');
-const searchEl = document.getElementById('search');
-const statsEl = document.getElementById('stats');
-const emptyState = document.getElementById('emptyState');
-const viewerBar = document.getElementById('viewerBar');
-const filePath = document.getElementById('filePath');
-const pdfFrame = document.getElementById('pdfFrame');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
-const toggleBtn = document.getElementById('toggleBtn');
-const sidebar = document.getElementById('sidebar');
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
-// ── Fetch tree ──
-async function loadTree() {
-  treeData = {"name": "时政汇总", "type": "dir", "children": [{"name": "两会专题", "type": "dir", "children": [{"name": "2026年两会思维导图.pdf", "type": "file", "path": "两会专题/2026年两会思维导图.pdf"}, {"name": "2026年两会政府工作报告.pdf", "type": "file", "path": "两会专题/2026年两会政府工作报告.pdf"}, {"name": "2026年两会政府工作报告100题（速记版）.pdf", "type": "file", "path": "两会专题/2026年两会政府工作报告100题（速记版）.pdf"}]}, {"name": "公基常识背诵手册", "type": "dir", "children": [{"name": "党史党务背诵手册.pdf", "type": "file", "path": "公基常识背诵手册/党史党务背诵手册.pdf"}, {"name": "公文背诵手册.pdf", "type": "file", "path": "公基常识背诵手册/公文背诵手册.pdf"}, {"name": "地理背诵手册.pdf", "type": "file", "path": "公基常识背诵手册/地理背诵手册.pdf"}, {"name": "文史背诵手册.pdf", "type": "file", "path": "公基常识背诵手册/文史背诵手册.pdf"}, {"name": "新思想背诵手册.pdf", "type": "file", "path": "公基常识背诵手册/新思想背诵手册.pdf"}, {"name": "每日公基常识填空题（背诵版）.pdf", "type": "file", "path": "公基常识背诵手册/每日公基常识填空题（背诵版）.pdf"}, {"name": "毛中特背诵手册.pdf", "type": "file", "path": "公基常识背诵手册/毛中特背诵手册.pdf"}, {"name": "法律背诵手册.pdf", "type": "file", "path": "公基常识背诵手册/法律背诵手册.pdf"}, {"name": "科技背诵手册.pdf", "type": "file", "path": "公基常识背诵手册/科技背诵手册.pdf"}, {"name": "管理背诵手册.pdf", "type": "file", "path": "公基常识背诵手册/管理背诵手册.pdf"}, {"name": "经济背诵手册.pdf", "type": "file", "path": "公基常识背诵手册/经济背诵手册.pdf"}, {"name": "马原背诵手册.pdf", "type": "file", "path": "公基常识背诵手册/马原背诵手册.pdf"}]}, {"name": "吉林省专项", "type": "dir", "children": [{"name": "吉林省省情专项.pdf", "type": "file", "path": "吉林省专项/吉林省省情专项.pdf"}, {"name": "吉林省近半年重要时政.pdf", "type": "file", "path": "吉林省专项/吉林省近半年重要时政.pdf"}]}, {"name": "每日积累", "type": "dir", "children": [{"name": "2025年12月", "type": "dir", "children": [{"name": "2025年12月10日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月10日时政积累.pdf"}, {"name": "2025年12月11日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月11日时政积累.pdf"}, {"name": "2025年12月12日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月12日时政积累.pdf"}, {"name": "2025年12月13日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月13日时政积累.pdf"}, {"name": "2025年12月14日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月14日时政积累.pdf"}, {"name": "2025年12月15日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月15日时政积累.pdf"}, {"name": "2025年12月16日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月16日时政积累.pdf"}, {"name": "2025年12月17日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月17日时政积累.pdf"}, {"name": "2025年12月18日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月18日时政积累.pdf"}, {"name": "2025年12月19日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月19日时政积累.pdf"}, {"name": "2025年12月1日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月1日时政积累.pdf"}, {"name": "2025年12月20日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月20日时政积累.pdf"}, {"name": "2025年12月21日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月21日时政积累.pdf"}, {"name": "2025年12月22日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月22日时政积累.pdf"}, {"name": "2025年12月23日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月23日时政积累.pdf"}, {"name": "2025年12月24日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月24日时政积累.pdf"}, {"name": "2025年12月25日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月25日时政积累.pdf"}, {"name": "2025年12月26日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月26日时政积累.pdf"}, {"name": "2025年12月27日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月27日时政积累.pdf"}, {"name": "2025年12月28日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月28日时政积累.pdf"}, {"name": "2025年12月29日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月29日时政积累.pdf"}, {"name": "2025年12月2日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月2日时政积累.pdf"}, {"name": "2025年12月30日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月30日时政积累.pdf"}, {"name": "2025年12月31日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月31日时政积累.pdf"}, {"name": "2025年12月3日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月3日时政积累.pdf"}, {"name": "2025年12月4日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月4日时政积累.pdf"}, {"name": "2025年12月5日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月5日时政积累.pdf"}, {"name": "2025年12月6日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月6日时政积累.pdf"}, {"name": "2025年12月7日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月7日时政积累.pdf"}, {"name": "2025年12月8日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月8日时政积累.pdf"}, {"name": "2025年12月9日时政积累.pdf", "type": "file", "path": "每日积累/2025年12月/2025年12月9日时政积累.pdf"}]}, {"name": "2026年01月", "type": "dir", "children": [{"name": "2026年1月10日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月10日时政积累.pdf"}, {"name": "2026年1月11日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月11日时政积累.pdf"}, {"name": "2026年1月12日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月12日时政积累.pdf"}, {"name": "2026年1月13日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月13日时政积累.pdf"}, {"name": "2026年1月14日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月14日时政积累.pdf"}, {"name": "2026年1月15日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月15日时政积累.pdf"}, {"name": "2026年1月16日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月16日时政积累.pdf"}, {"name": "2026年1月17日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月17日时政积累.pdf"}, {"name": "2026年1月18日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月18日时政积累.pdf"}, {"name": "2026年1月19日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月19日时政积累.pdf"}, {"name": "2026年1月1日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月1日时政积累.pdf"}, {"name": "2026年1月20日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月20日时政积累.pdf"}, {"name": "2026年1月21日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月21日时政积累.pdf"}, {"name": "2026年1月22日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月22日时政积累.pdf"}, {"name": "2026年1月23日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月23日时政积累.pdf"}, {"name": "2026年1月24日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月24日时政积累.pdf"}, {"name": "2026年1月25日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月25日时政积累.pdf"}, {"name": "2026年1月26日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月26日时政积累.pdf"}, {"name": "2026年1月27日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月27日时政积累.pdf"}, {"name": "2026年1月28日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月28日时政积累.pdf"}, {"name": "2026年1月29日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月29日时政积累.pdf"}, {"name": "2026年1月2日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月2日时政积累.pdf"}, {"name": "2026年1月30日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月30日时政积累.pdf"}, {"name": "2026年1月31日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月31日时政积累.pdf"}, {"name": "2026年1月3日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月3日时政积累.pdf"}, {"name": "2026年1月4日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月4日时政积累.pdf"}, {"name": "2026年1月5日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月5日时政积累.pdf"}, {"name": "2026年1月6日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月6日时政积累.pdf"}, {"name": "2026年1月7日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月7日时政积累.pdf"}, {"name": "2026年1月8日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月8日时政积累.pdf"}, {"name": "2026年1月9日时政积累.pdf", "type": "file", "path": "每日积累/2026年01月/2026年1月9日时政积累.pdf"}]}, {"name": "2026年02月", "type": "dir", "children": [{"name": "2026年2月10日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月10日时政积累.pdf"}, {"name": "2026年2月11日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月11日时政积累.pdf"}, {"name": "2026年2月12日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月12日时政积累.pdf"}, {"name": "2026年2月13日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月13日时政积累.pdf"}, {"name": "2026年2月1日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月1日时政积累.pdf"}, {"name": "2026年2月24日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月24日时政积累.pdf"}, {"name": "2026年2月25日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月25日时政积累.pdf"}, {"name": "2026年2月26日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月26日时政积累.pdf"}, {"name": "2026年2月28日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月28日时政积累.pdf"}, {"name": "2026年2月2日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月2日时政积累.pdf"}, {"name": "2026年2月3日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月3日时政积累.pdf"}, {"name": "2026年2月4日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月4日时政积累.pdf"}, {"name": "2026年2月5日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月5日时政积累.pdf"}, {"name": "2026年2月6日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月6日时政积累.pdf"}, {"name": "2026年2月7日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月7日时政积累.pdf"}, {"name": "2026年2月8日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月8日时政积累.pdf"}, {"name": "2026年2月9日时政积累.pdf", "type": "file", "path": "每日积累/2026年02月/2026年2月9日时政积累.pdf"}]}, {"name": "2026年03月", "type": "dir", "children": [{"name": "2026年3月11日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月11日时政积累.pdf"}, {"name": "2026年3月12日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月12日时政积累.pdf"}, {"name": "2026年3月13日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月13日时政积累.pdf"}, {"name": "2026年3月14日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月14日时政积累.pdf"}, {"name": "2026年3月15日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月15日时政积累.pdf"}, {"name": "2026年3月16日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月16日时政积累.pdf"}, {"name": "2026年3月17日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月17日时政积累.pdf"}, {"name": "2026年3月19日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月19日时政积累.pdf"}, {"name": "2026年3月1日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月1日时政积累.pdf"}, {"name": "2026年3月20日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月20日时政积累.pdf"}, {"name": "2026年3月21日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月21日时政积累.pdf"}, {"name": "2026年3月22日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月22日时政积累.pdf"}, {"name": "2026年3月26日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月26日时政积累.pdf"}, {"name": "2026年3月27日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月27日时政积累.pdf"}, {"name": "2026年3月28日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月28日时政积累.pdf"}, {"name": "2026年3月29日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月29日时政积累.pdf"}, {"name": "2026年3月30日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月30日时政积累.pdf"}, {"name": "2026年3月31日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月31日时政积累.pdf"}, {"name": "2026年3月4日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月4日时政积累.pdf"}, {"name": "2026年3月5日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月5日时政积累.pdf"}, {"name": "2026年3月6日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月6日时政积累.pdf"}, {"name": "2026年3月7日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月7日时政积累.pdf"}, {"name": "2026年3月8日时政积累.pdf", "type": "file", "path": "每日积累/2026年03月/2026年3月8日时政积累.pdf"}]}, {"name": "2026年04月", "type": "dir", "children": [{"name": "2026年4月10日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月10日时政积累.pdf"}, {"name": "2026年4月12日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月12日时政积累.pdf"}, {"name": "2026年4月13日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月13日时政积累.pdf"}, {"name": "2026年4月14日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月14日时政积累.pdf"}, {"name": "2026年4月15日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月15日时政积累.pdf"}, {"name": "2026年4月16日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月16日时政积累.pdf"}, {"name": "2026年4月17日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月17日时政积累.pdf"}, {"name": "2026年4月18日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月18日时政积累.pdf"}, {"name": "2026年4月1日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月1日时政积累.pdf"}, {"name": "2026年4月22日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月22日时政积累.pdf"}, {"name": "2026年4月23日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月23日时政积累.pdf"}, {"name": "2026年4月24日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月24日时政积累.pdf"}, {"name": "2026年4月25日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月25日时政积累.pdf"}, {"name": "2026年4月26日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月26日时政积累.pdf"}, {"name": "2026年4月27日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月27日时政积累.pdf"}, {"name": "2026年4月29日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月29日时政积累.pdf"}, {"name": "2026年4月2日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月2日时政积累.pdf"}, {"name": "2026年4月30日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月30日时政积累.pdf"}, {"name": "2026年4月3日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月3日时政积累.pdf"}, {"name": "2026年4月7日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月7日时政积累.pdf"}, {"name": "2026年4月8日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月8日时政积累.pdf"}, {"name": "2026年4月9日时政积累.pdf", "type": "file", "path": "每日积累/2026年04月/2026年4月9日时政积累.pdf"}]}, {"name": "2026年05月", "type": "dir", "children": [{"name": "2026年5月10日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月10日时政积累.pdf"}, {"name": "2026年5月12日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月12日时政积累.pdf"}, {"name": "2026年5月13日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月13日时政积累.pdf"}, {"name": "2026年5月14日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月14日时政积累.pdf"}, {"name": "2026年5月16日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月16日时政积累.pdf"}, {"name": "2026年5月17日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月17日时政积累.pdf"}, {"name": "2026年5月18日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月18日时政积累.pdf"}, {"name": "2026年5月19日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月19日时政积累.pdf"}, {"name": "2026年5月20日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月20日时政积累.pdf"}, {"name": "2026年5月21日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月21日时政积累.pdf"}, {"name": "2026年5月23日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月23日时政积累.pdf"}, {"name": "2026年5月24日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月24日时政积累.pdf"}, {"name": "2026年5月25日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月25日时政积累.pdf"}, {"name": "2026年5月26日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月26日时政积累.pdf"}, {"name": "2026年5月27日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月27日时政积累.pdf"}, {"name": "2026年5月28日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月28日时政积累.pdf"}, {"name": "2026年5月31日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月31日时政积累.pdf"}, {"name": "2026年5月6日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月6日时政积累.pdf"}, {"name": "2026年5月8日时政积累.pdf", "type": "file", "path": "每日积累/2026年05月/2026年5月8日时政积累.pdf"}]}, {"name": "2026年06月", "type": "dir", "children": [{"name": "2026年6月10日时政积累.pdf", "type": "file", "path": "每日积累/2026年06月/2026年6月10日时政积累.pdf"}, {"name": "2026年6月11日时政积累.pdf", "type": "file", "path": "每日积累/2026年06月/2026年6月11日时政积累.pdf"}, {"name": "2026年6月15日时政积累.pdf", "type": "file", "path": "每日积累/2026年06月/2026年6月15日时政积累.pdf"}, {"name": "2026年6月16日时政积累.pdf", "type": "file", "path": "每日积累/2026年06月/2026年6月16日时政积累.pdf"}, {"name": "2026年6月17日时政积累.pdf", "type": "file", "path": "每日积累/2026年06月/2026年6月17日时政积累.pdf"}, {"name": "2026年6月18日时政积累.pdf", "type": "file", "path": "每日积累/2026年06月/2026年6月18日时政积累.pdf"}, {"name": "2026年6月1日时政积累.pdf", "type": "file", "path": "每日积累/2026年06月/2026年6月1日时政积累.pdf"}, {"name": "2026年6月4日时政积累.pdf", "type": "file", "path": "每日积累/2026年06月/2026年6月4日时政积累.pdf"}, {"name": "2026年6月5日时政积累.pdf", "type": "file", "path": "每日积累/2026年06月/2026年6月5日时政积累.pdf"}, {"name": "2026年6月6日时政积累.pdf", "type": "file", "path": "每日积累/2026年06月/2026年6月6日时政积累.pdf"}, {"name": "2026年6月7日时政积累.pdf", "type": "file", "path": "每日积累/2026年06月/2026年6月7日时政积累.pdf"}, {"name": "2026年6月8日时政积累.pdf", "type": "file", "path": "每日积累/2026年06月/2026年6月8日时政积累.pdf"}, {"name": "2026年6月9日时政积累.pdf", "type": "file", "path": "每日积累/2026年06月/2026年6月9日时政积累.pdf"}]}]}]};
-  buildFlatList(treeData);
-  renderTree(treeData, treeEl, 0);
-  updateStats();
+function shortName(name){
+  var s=name.replace(/\.pdf$/i,'');
+  var m=s.match(/(\d+)年(\d+月\d+日)时政积累/);
+  if(m) return '<span class="date">'+esc(m[2])+'</span>';
+  s=s.replace(/^2026年/,'').replace(/^2025年/,'');
+  s=s.replace('时政热点汇总','热点汇总').replace('（考试必看）','');
+  return esc(s);
 }
 
-// ── Flatten all PDFs ──
-function buildFlatList(node, prefix = '') {
-  if (!node.children) return;
-  for (const child of node.children) {
-    if (child.type === 'file') {
-      flatList.push(child);
-    } else if (child.type === 'dir') {
-      buildFlatList(child, child.name);
-    }
-  }
-}
-
-// ── Render tree ──
-function renderTree(node, parentEl, depth) {
-  if (!node.children) return;
-  for (const child of node.children) {
-    if (child.type === 'dir') {
-      const div = document.createElement('div');
-      div.className = 'tree-item dir';
-      div.dataset.name = child.name;
-      div.innerHTML = `
-        <span class="arrow" id="arrow-${child.name.replace(/\s/g,'_')}">▶</span>
-        <span class="icon">📁</span>
-        <span class="label">${esc(child.name)}</span>
-        <span class="count">${countPdfs(child)}</span>
-      `;
-      div.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleDir(child.name);
-      });
-      parentEl.appendChild(div);
-
-      const container = document.createElement('div');
-      container.className = 'tree-children';
-      container.id = 'children-' + child.name.replace(/\s/g,'_');
-      // auto-open first level
-      if (depth === 0) {
-        container.classList.add('open');
-        div.querySelector('.arrow').classList.add('open');
+function render(){
+  var root=document.getElementById('root');
+  root.innerHTML='';
+  TREE.children.forEach(function(dir){
+    var section=document.createElement('div');
+    section.className='dir-section';
+    
+    var dirFiles=[];
+    function collect(n){if(n.c) n.c.forEach(collect); else dirFiles.push(n);}
+    if(dir.c) dir.c.forEach(collect);
+    
+    var title=document.createElement('div');
+    title.className='dir-title';
+    title.innerHTML='<span>📁 '+esc(dir.n)+'</span><span class="cnt">'+dirFiles.length+'</span>';
+    title.addEventListener('click',function(){section.querySelector('.sub-dir').classList.toggle('open');title.querySelector('.arrow').classList.toggle('open')});
+    section.appendChild(title);
+    
+    var subDiv=document.createElement('div');
+    subDiv.className='sub-dir';
+    
+    dir.c.forEach(function(sub){
+      if(sub.c){
+        var subFiles=[];
+        function collect2(n){if(n.c) n.c.forEach(collect2); else subFiles.push(n);}
+        if(sub.c) sub.c.forEach(collect2);
+        
+        var st=document.createElement('div');
+        st.className='sub-dir-title';
+        st.innerHTML='📁 '+esc(sub.n)+' <span class="cnt">'+subFiles.length+'</span>';
+        st.addEventListener('click',function(){st.nextElementSibling.classList.toggle('open');st.querySelector('.arrow').classList.toggle('open')});
+        subDiv.appendChild(st);
+        
+        var fdiv=document.createElement('div');
+        fdiv.className='files';
+        sub.c.forEach(function(f){
+          var a=document.createElement('a');
+          a.href=f.p;
+          a.target='_blank';
+          a.innerHTML=shortName(f.n);
+          fdiv.appendChild(a);
+        });
+        subDiv.appendChild(fdiv);
       }
-      parentEl.appendChild(container);
-      renderTree(child, container, depth + 1);
-    } else if (child.type === 'file') {
-      const div = document.createElement('div');
-      div.className = 'tree-item file';
-      div.dataset.path = child.path;
-      div.innerHTML = `
-        <span class="icon" style="visibility:hidden">·</span>
-        <span class="icon">📄</span>
-        <span class="label">${esc(displayName(child.name))}</span>
-      `;
-      div.addEventListener('click', () => openFile(child.path));
-      // Highlight on open
-      div.addEventListener('click', function() {
-        document.querySelectorAll('.tree-item.active').forEach(el => el.classList.remove('active'));
-        this.classList.add('active');
-      });
-      parentEl.appendChild(div);
-    }
-  }
-}
-
-function displayName(name) {
-  // Show "1月10日" instead of "2026年1月10日时政积累.pdf"
-  let s = name.replace(/\.pdf$/i, '');
-  // For daily files: "2026年1月10日时政积累" → "1月10日"
-  const dailyMatch = s.match(/(\d+)年(\d+月\d+日)时政积累/);
-  if (dailyMatch) return dailyMatch[2];
-  // For 两会 files: shorten
-  s = s.replace('2026年', '');
-  s = s.replace('（考试必看）', '');
-  s = s.replace('时政热点汇总', '热点汇总');
-  return s;
-}
-
-function countPdfs(node) {
-  let n = 0;
-  if (node.children) {
-    for (const c of node.children) {
-      if (c.type === 'file') n++;
-      else n += countPdfs(c);
-    }
-  }
-  return n;
-}
-
-function esc(s) {
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
-}
-
-function toggleDir(name) {
-  const key = name.replace(/\s/g,'_');
-  const container = document.getElementById('children-' + key);
-  const arrow = document.getElementById('arrow-' + key);
-  if (!container) return;
-  container.classList.toggle('open');
-  if (arrow) arrow.classList.toggle('open');
-}
-
-// ── Open file ──
-function openFile(path) {
-  const idx = flatList.findIndex(f => f.path === path);
-  if (idx === -1) return;
-  currentIdx = idx;
-  showFile(idx);
-}
-
-function showFile(idx) {
-  if (idx < 0 || idx >= flatList.length) return;
-  const file = flatList[idx];
-  emptyState.style.display = 'none';
-  viewerBar.style.display = 'flex';
-  pdfFrame.style.display = 'block';
-  pdfFrame.src = '/' + file.path;
-  // Show clean path in bar
-  const parts = file.path.split('/');
-  const dir = parts.slice(0, -1).join(' / ');
-  const fname = displayName(parts[parts.length-1]);
-  filePath.innerHTML = `<strong>${esc(fname)}</strong>  —  ${esc(dir)}`;
-  prevBtn.disabled = idx === 0;
-  nextBtn.disabled = idx === flatList.length - 1;
-  // Highlight in tree
-  document.querySelectorAll('.tree-item.active').forEach(el => el.classList.remove('active'));
-  const match = document.querySelector(`.tree-item.file[data-path="${file.path}"]`);
-  if (match) match.classList.add('active');
-  updateStats();
-}
-
-// ── Navigation ──
-prevBtn.addEventListener('click', () => { if (currentIdx > 0) showFile(currentIdx - 1); });
-nextBtn.addEventListener('click', () => { if (currentIdx < flatList.length - 1) showFile(currentIdx + 1); });
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowLeft' && currentIdx > 0 && !e.target.closest('input')) {
-    showFile(currentIdx - 1);
-  }
-  if (e.key === 'ArrowRight' && currentIdx < flatList.length - 1 && !e.target.closest('input')) {
-    showFile(currentIdx + 1);
-  }
-});
-
-// ── Search ──
-let searchTimer;
-searchEl.addEventListener('input', () => {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => filterTree(searchEl.value.trim()), 150);
-});
-
-function filterTree(query) {
-  const items = treeEl.querySelectorAll('.tree-item');
-  const dirs = treeEl.querySelectorAll('.tree-item.dir');
-  const files = treeEl.querySelectorAll('.tree-item.file');
-
-  if (!query) {
-    items.forEach(el => el.style.display = 'flex');
-    dirs.forEach(d => {
-      const key = d.dataset.name.replace(/\s/g,'_');
-      const container = document.getElementById('children-' + key);
-      if (container) container.classList.add('open');
-      const arrow = document.getElementById('arrow-' + key);
-      if (arrow) arrow.classList.add('open');
     });
-    return;
-  }
-
-  const q = query.toLowerCase();
-  let hasAny = false;
-  files.forEach(f => {
-    const label = f.querySelector('.label');
-    const match = label && label.textContent.toLowerCase().includes(q);
-    f.style.display = match ? 'flex' : 'none';
-    if (match) hasAny = true;
+    
+    section.appendChild(subDiv);
+    root.appendChild(section);
   });
-  dirs.forEach(d => {
-    const key = d.dataset.name.replace(/\s/g,'_');
-    const container = document.getElementById('children-' + key);
-    if (!container) return;
-    const visible = Array.from(container.querySelectorAll('.tree-item.file')).some(f => f.style.display !== 'none');
-    d.style.display = 'flex';
-    container.classList.toggle('open', visible);
-    const arrow = document.getElementById('arrow-' + key);
-    if (arrow) arrow.classList.toggle('open', visible);
-  });
-  const noResults = treeEl.querySelector('.no-results');
-  if (!hasAny && query) {
-    if (!noResults) {
-      const nr = document.createElement('div');
-      nr.className = 'no-results';
-      nr.textContent = `没有匹配 "${query}" 的 PDF`;
-      treeEl.appendChild(nr);
-    }
-  } else if (noResults) {
-    noResults.remove();
-  }
 }
 
-function updateStats() {
-  const total = flatList.length;
-  const pos = currentIdx >= 0 ? currentIdx + 1 : '';
-  statsEl.textContent = pos ? `${pos} / ${total} 个文件` : `${total} 个文件`;
-}
-
-// ── Toggle sidebar ──
-toggleBtn.addEventListener('click', () => {
-  sidebarCollapsed = !sidebarCollapsed;
-  sidebar.classList.toggle('collapsed', sidebarCollapsed);
-  toggleBtn.textContent = sidebarCollapsed ? '▶' : '◀';
+document.getElementById('search').addEventListener('input',function(){
+  var q=this.value.trim().toLowerCase();
+  var links=document.querySelectorAll('a');
+  var sections=document.querySelectorAll('.dir-section');
+  if(!q){links.forEach(function(l){l.style.display='block'});return}
+  links.forEach(function(l){
+    l.style.display=l.textContent.toLowerCase().includes(q)?'block':'none';
+  });
 });
 
-// ── Init ──
-loadTree();
+render();
 </script>
 </body>
 </html>
