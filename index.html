@@ -84,7 +84,7 @@ function render(){
        
        var fdiv=document.createElement('div');
        fdiv.className='files';
-       sub.c.forEach(function(f){
+       sub.c.sort(sortFiles); sub.c.forEach(function(f){
          var a=document.createElement('a');
          a.href=f.p;
          a.target='_blank';
@@ -92,19 +92,26 @@ function render(){
          fdiv.appendChild(a);
        });
        subDiv.appendChild(fdiv);
-      }else{
-        var a=document.createElement('a');
-        a.href=sub.p;
-        a.target='_blank';
-        a.innerHTML=shortName(sub.n);
-        subDiv.appendChild(a);
-     }
+     
    });
     
+  var directFiles=[];
+  dir.c.forEach(function(sub){if(!sub.c)directFiles.push(sub)});
+  directFiles.sort(sortFiles);
+  directFiles.forEach(function(f){
+    var a=document.createElement('a');
+    a.href=f.p;
+    a.target='_blank';
+    a.innerHTML=shortName(f.n);
+    subDiv.appendChild(a);
+  });
     section.appendChild(subDiv);
     root.appendChild(section);
   });
 }
+
+function getDateNum(n){var m=n.match(/\d{4}年\d{1,2}月\d{1,2}日/);if(m){var p=n.split("时政积累")[0];p=p.replace(/年/g,' ').replace(/月/g,' ').replace(/日/g,' ').trim().split(/\s+/);if(p.length>=2)return parseInt(p[0])*10000+parseInt(p[1])*100+(parseInt(p[2])||0)}return 0}
+function sortFiles(a,b){var aN=getDateNum(a.n||a.name||''),bN=getDateNum(b.n||b.name||'');if(aN&&bN)return aN-bN;return (a.n||a.name||'').localeCompare(b.n||b.name||'')}
 
 document.getElementById('search').addEventListener('input',function(){
   var q=this.value.trim().toLowerCase();
