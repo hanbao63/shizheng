@@ -87,7 +87,7 @@ function render(){
        sub.c.sort(sortFiles); sub.c.forEach(function(f){
          var a=document.createElement('a');
          a.href=f.p;
-         a.target='_blank';
+         a.onclick=function(e){e.preventDefault();window.open(f.p,'_blank')}
          a.innerHTML=shortName(f.n);
          fdiv.appendChild(a);
        });
@@ -101,7 +101,7 @@ function render(){
   directFiles.forEach(function(f){
     var a=document.createElement('a');
     a.href=f.p;
-    a.target='_blank';
+    a.onclick=function(e){e.preventDefault();window.open(f.p,'_blank')}
     a.innerHTML=shortName(f.n);
     subDiv.appendChild(a);
   });
